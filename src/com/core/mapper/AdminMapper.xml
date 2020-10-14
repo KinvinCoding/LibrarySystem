@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.core.mapper.AdminMapper">
+	<select id="getBorrows" parameterType="borrows"
+		resultType="borrows">
+		SELECT u.uname,k.bname,k.author,k.birth,k.edition,b.startTime,b.status
+		, k.sid ,s.sname,b.id,k.number FROM borrows b LEFT JOIN users u ON
+		b.uid=u.id
+		LEFT JOIN books k ON b.bid=k.id
+		LEFT JOIN sorts s ON s.id=k.sid WHERE b.status=0
+		<if test="uname!=null and uname!=''">
+			and u.uname like "%${uname}%"
+		</if>
+		<if test="sid!=null and sid!=''">
+			and k.sid=#{sid}
+		</if>
+		ORDER BY b.startTime
+	</select>
+
+	<update id="updateBorrows" parameterType="int">
+		UPDATE borrows SET
+		STATUS=1 WHERE id=#{id}
+	</update>
+
+	<update id="notAllowBorrows" parameterType="int">
+		UPDATE borrows SET
+		STATUS=2 WHERE id=#{id}
+	</update>
+
+	<insert id="inserBackBooks" parameterType="int">
+		INSERT INTO
+		backs(brid,status)
+		VALUES (#{id},0)
+	</insert>
+
+	<select id="getBackBooks" resultType="borrows">
+		SELECT
+		u.uname,k.bname,k.author,k.birth,k.edition,b.id FROM borrows s INNER
+		JOIN books k ON s.bid=k.id
+		INNER JOIN users u ON s.uid=u.id
+		INNER JOIN backs b ON s.id=b.brid WHERE b.status=1
+	</select>
+
+	<update id="allowBackBook" parameterType="int">
+		UPDATE library.backs
+		SET status = 2
+		WHERE id = #{id}
+	</update>
+
+	<!-- 申请预定sql -->
+	<select id="getAllReserve" resultType="reserve">
+		SELECT
+		u.uname,b.bname,b.author,b.birth,b.edition,b.number,s.id,s.startTime
+		FROM reserves s INNER JOIN books b ON s.bkid=b.id INNER JOIN users
+		u ON s.uid=u.id WHERE s.status=0 ORDER BY s.startTime
+	</select>
+
+	<update id="updateReserveBook" parameterType="int">
+		UPDATE reserves
+		SET
+		status = 1
+		WHERE id = #{id};
+	</update>
+
+	<select id="getAdmin" parameterType="users" resultType="admin">
+		SELECT
+		id,uname,code,password
+		FROM admins WHERE code=#{code} AND
+		password=#{password}
+	</select>
+
+	<update id="notAllowReserveBook" parameterType="int">
+		UPDATE
+		reserves
+		SET status =2
+		WHERE id = #{id};
+	</update>
+
+	<select id="selectBorrowsId" parameterType="int"
+		resultType="int">
+		SELECT brid
+		FROM backs
+		WHERE id=#{id}
+	</select>
+
+	<select id="selectBooksId" parameterType="int" resultType="int">
+		SELECT bid
+		FROM borrows
+		WHERE id=#{id}
+	</select>
+
+	<update id="updateBooks" parameterType="int">
+		UPDATE books
+		SET number =
+		number+1
+		WHERE id = #{id}
+	</update>
+
+	<update id="descBooks" parameterType="int">
+		UPDATE books
+		SET number =
+		number-1
+		WHERE id = #{id}
+	</update>
+
+	<update id="updateBorrowsTime" parameterType="borrows">
+		update borrows
+		set
+		endTime = #{endTime}
+		where id = #{id};
+	</update>
+
+	<update id="updateReserveTime" parameterType="reserve">
+		UPDATE reserves
+		SET
+		endTime = #{endTime}
+		WHERE id = #{id}
+	</update>
+</mapper>

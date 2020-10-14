@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.core.mapper.BooksMapper">
+	<select id="getAllBooks" parameterType="books"
+		resultType="books">
+		SELECT b.bname,b.id,b.author,b.birth,b.edition,s.sname FROM books
+		b INNER JOIN sorts s ON b.sid=s.id
+		<where>
+			<if test="bname!=null and bname!=''">
+				and b.bname like "%${bname}%"
+			</if>
+			<if test="sid!=null and sid!=''">
+				and b.sid=#{sid}
+			</if>
+		</where>
+	</select>
+	<!--查总记录 -->
+	<select id="getCount" parameterType="books" resultType="int">
+		SELECT count(b.id) FROM books
+		b INNER JOIN sorts s ON b.sid=s.id
+		<where>
+			<if test="bname!=null and bname!=''">
+				and b.bname like "%${bname}%"
+			</if>
+			<if test="sid!=null and sid!=''">
+				and b.sid=#{sid}
+			</if>
+		</where>
+	</select>
+
+	<select id="getBook" parameterType="int" resultType="books">
+		SELECT
+		b.bname,b.id,b.author,b.birth,b.edition,b.number ,s.sname FROM books
+		b
+		INNER JOIN sorts s ON b.sid=s.id WHERE b.id=#{id}
+	</select>
+
+	<insert id="insertBorrow" parameterType="borrows">
+		INSERT INTO borrows(uid,bid,startTime,status)
+		VALUES (
+		#{uid},
+		#{bid},
+		#{startTime},
+		#{status})
+	</insert>
+
+	<select id="getBorrows" parameterType="int" resultType="borrows">
+		SELECT b.bname,b.author,b.birth,b.edition ,s.sname,w.startTime,w.status FROM books
+		b INNER JOIN borrows w ON b.id=w.bid INNER JOIN sorts s ON
+		b.sid=s.id WHERE w.uid=#{uid} ORDER BY w.startTime
+	</select>
+
+	<select id="getBacks" parameterType="int" resultType="borrows">
+		SELECT b.id,k.bname,k.author,k.birth,k.edition,s.startTime,b.status FROM borrows
+		s INNER JOIN backs b ON b.brid=s.id
+		INNER JOIN books k ON k.id=s.bid WHERE s.uid=#{id} ORDER BY s.startTime
+	</select>
+
+	<update id="updateBacks" parameterType="int">
+		UPDATE backs
+		SET status =
+		1
+		WHERE id = #{id}
+	</update>
+
+	<insert id="insertReserve" parameterType="reserve">
+		INSERT INTO
+		reserves(uid,bkid,startTime,status)
+		VALUES (
+		#{uid},
+		#{bkid},
+		#{startTime},
+		0);
+	</insert>
+
+	<select id="getReserveBook" parameterType="int"
+		resultType="reserve">
+		SELECT b.bname,b.author,b.birth,b.edition
+		,s.status,s.startTime FROM reserves s INNER JOIN books b ON
+		s.bkid=b.id WHERE s.uid=#{id} ORDER BY s.startTime
+	</select>
+
+	<select id="selectUser" parameterType="users" resultType="users">
+		SELECT
+		id,uname,code,password
+		FROM users WHERE code=#{code} AND
+		password=#{password}
+	</select>
+
+	<!-- <update id="updateBooks" parameterType="int"> UPDATE books SET number 
+		= number-1 WHERE id = #{id} </update> -->
+
+</mapper>
